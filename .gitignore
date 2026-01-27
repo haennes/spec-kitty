@@ -250,3 +250,5 @@ acceptance-jvm/allure-report/
 # never authored here: run `make sync-packs`.
 /packs/built-in/
 /packs/internal/
+# Nix results
+result
