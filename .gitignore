@@ -252,3 +252,4 @@ acceptance-jvm/allure-report/
 /packs/internal/
 # Nix results
 result
+!flake.lock
