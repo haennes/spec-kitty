@@ -31,10 +31,13 @@
         || relPath == "LICENSE"
         || relPath == "CHANGELOG.md"
         || relPath == "pytest.ini"
+        || relPath == "hatch_build.py"
         || nixpkgs.lib.hasPrefix "src/" relPath
         || nixpkgs.lib.hasPrefix "tests/" relPath
         || nixpkgs.lib.hasPrefix "scripts/" relPath
-        || nixpkgs.lib.hasPrefix "examples/" relPath;
+        || nixpkgs.lib.hasPrefix "examples/" relPath
+        || relPath == "packs/built-in.source.yaml"
+        || nixpkgs.lib.hasPrefix "packs/built-in/" relPath;
 
       filteredSource = builtins.path {
         path = self;
@@ -76,6 +79,19 @@
           format = "pyproject";
 
           src = filteredSource;
+
+          # # [build-system].requires pins exact PyPI versions (kept in lockstep with
+          # # uv.lock for the published wheel). Nix already pins the supply chain via the
+          # # flake input, so relax those pins to the versions nixpkgs provides; the
+          # # pypa build hook fails hard on an exact mismatch otherwise.
+          # postPatch = ''
+          #   substituteInPlace pyproject.toml \
+          #     --replace-fail 'hatchling==1.31.0' 'hatchling>=1.27.0' \
+          #     --replace-fail 'ruamel.yaml==0.19.1' 'ruamel.yaml>=0.18.0' \
+          #     --replace-fail 'pydantic==2.13.3' 'pydantic>=2.0' \
+          #     --replace-fail 'packaging==26.2' 'packaging>=23.0' \
+          #     --replace-fail 'python-ulid==3.1.0' 'python-ulid>=3.0'
+          # '';
 
           nativeBuildInputs = with python3Packages; [
             hatchling
@@ -428,6 +444,7 @@
             packages = [
               pythonEnv
               pkgs.git
+              pkgs.uv
             ];
 
             shellHook = ''
